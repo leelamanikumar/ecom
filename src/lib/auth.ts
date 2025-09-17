@@ -50,8 +50,8 @@ export function isValidAdminPassword(pw: string): boolean {
 	return ADMIN_PASSWORD.length > 0 && crypto.timingSafeEqual(Buffer.from(pw), Buffer.from(ADMIN_PASSWORD));
 }
 
-export function getIsAdminFromCookies(): boolean {
-	const store = cookies();
+export async function getIsAdminFromCookies(): Promise<boolean> {
+	const store = await cookies();
 	const token = store.get('admin_token')?.value;
 	return verifyAdminToken(token);
 }
