@@ -6,7 +6,7 @@ import { useCart } from "@/context/CartContext";
 type Step = 'phone' | 'otp' | 'shipping' | 'confirmed';
 
 export default function CheckoutFlow({ total }: { total: number }) {
-	const { state, clear } = useCart();
+	const { clear } = useCart();
 	const [step, setStep] = useState<Step>('phone');
 	const [phone, setPhone] = useState('');
 	const [serverToken, setServerToken] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export default function CheckoutFlow({ total }: { total: number }) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ phone }),
 			});
-			const data = await res.json();
+			const data: { ok?: boolean; token?: string; debugCode?: string; error?: string } = await res.json();
 			if (!res.ok || !data?.ok || !data?.token) {
 				throw new Error(data?.error || 'Failed to send OTP');
 			}
@@ -50,8 +50,8 @@ export default function CheckoutFlow({ total }: { total: number }) {
 			} else {
 				setInfo('OTP sent on WhatsApp. Please check your phone.');
 			}
-		} catch (e: any) {
-			setError(e.message);
+		} catch (e: unknown) {
+			setError(e instanceof Error ? e.message : 'Failed to send OTP');
 		} finally {
 			setLoading(false);
 		}
@@ -75,14 +75,14 @@ export default function CheckoutFlow({ total }: { total: number }) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ phone, code: otp.trim(), token: serverToken }),
 			});
-			const data = await res.json();
+			const data: { ok?: boolean; error?: string } = await res.json();
 			if (!res.ok || !data?.ok) {
 				throw new Error(data?.error || 'Verification failed');
 			}
 			setInfo('Phone verified successfully.');
 			setStep('shipping');
-		} catch (e: any) {
-			setError(e.message);
+		} catch (e: unknown) {
+			setError(e instanceof Error ? e.message : 'Verification failed');
 		} finally {
 			setLoading(false);
 		}

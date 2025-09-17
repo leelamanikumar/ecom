@@ -21,12 +21,9 @@ interface Product {
 async function getProduct(idOrSlug: string): Promise<Product | null> {
 	await connectToDatabase();
 	const query = mongoose.Types.ObjectId.isValid(idOrSlug) ? { _id: idOrSlug } : { slug: idOrSlug };
-	const doc = await ProductModel.findOne(query).lean();
+	const doc = await ProductModel.findOne(query).lean<{ _id: mongoose.Types.ObjectId }>();
 	if (!doc) return null;
-	return {
-		...doc,
-		_id: (doc as any)._id.toString(),
-	} as unknown as Product;
+	return { ...doc, _id: doc._id.toString() } as unknown as Product;
 }
 
 export default async function ProductPage({ params }: { params: { id: string } }) {

@@ -17,11 +17,11 @@ export default function AdminLoginPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ password }),
 			});
-			const data = await res.json();
+			const data: { ok?: boolean; error?: string } = await res.json();
 			if (!res.ok || !data?.ok) throw new Error(data?.error || 'Login failed');
 			window.location.href = (new URLSearchParams(window.location.search).get('next')) || '/admin';
-		} catch (e: any) {
-			setError(e.message);
+		} catch (e: unknown) {
+			setError(e instanceof Error ? e.message : 'Login failed');
 		} finally {
 			setLoading(false);
 		}

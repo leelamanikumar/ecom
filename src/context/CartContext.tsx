@@ -20,7 +20,8 @@ type Action =
 	| { type: 'ADD_ITEM'; item: CartItem }
 	| { type: 'REMOVE_ITEM'; productId: string; size?: number }
 	| { type: 'CHANGE_QTY'; productId: string; size?: number; quantity: number }
-	| { type: 'CLEAR' };
+	| { type: 'CLEAR' }
+	| { type: '__INIT__'; state: CartState };
 
 const CartContext = createContext<{
 	state: CartState;
@@ -38,6 +39,8 @@ const CartContext = createContext<{
 
 function cartReducer(state: CartState, action: Action): CartState {
 	switch (action.type) {
+		case '__INIT__':
+			return action.state;
 		case 'ADD_ITEM': {
 			const key = (i: CartItem) => `${i.productId}-${i.size ?? 'na'}`;
 			const existingIndex = state.items.findIndex((i) => key(i) === key(action.item));
@@ -70,18 +73,18 @@ function cartReducer(state: CartState, action: Action): CartState {
 	}
 }
 
-function useLocalStorageReducer<TState, TAction>(
+function useLocalStorageReducer<TState, TAction extends { type: string }>(
 	reducer: (s: TState, a: TAction) => TState,
 	initial: TState,
 	key: string
 ) {
-	const [state, dispatch] = useReducer(reducer as any, initial);
+	const [state, dispatch] = useReducer(reducer, initial);
 	useEffect(() => {
 		const stored = localStorage.getItem(key);
 		if (stored) {
 			try {
-				const parsed = JSON.parse(stored);
-				dispatch({ type: '__INIT__', state: parsed } as any);
+				const parsed = JSON.parse(stored) as TState;
+				dispatch({ type: '__INIT__', state: parsed } as unknown as TAction);
 			} catch {}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,8 +92,8 @@ function useLocalStorageReducer<TState, TAction>(
 	useEffect(() => {
 		localStorage.setItem(key, JSON.stringify(state));
 	}, [key, state]);
-	function initDispatch(action: any) {
-		if (action?.type === '__INIT__') return;
+	function initDispatch(action: TAction) {
+		if ((action as unknown as { type: string }).type === '__INIT__') return;
 		dispatch(action);
 	}
 	return [state, initDispatch] as const;
@@ -105,7 +108,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 		removeItem: (productId: string, size?: number) => dispatch({ type: 'REMOVE_ITEM', productId, size }),
 		changeQty: (productId: string, size: number | undefined, quantity: number) => dispatch({ type: 'CHANGE_QTY', productId, size, quantity }),
 		clear: () => dispatch({ type: 'CLEAR' }),
-	}), [state]);
+	}), [state, dispatch]);
 
 	return <CartContext.Provider value={api}>{children}</CartContext.Provider>;
 }

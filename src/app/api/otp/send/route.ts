@@ -6,7 +6,7 @@ const WA_PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID as string;
 
 export async function POST(request: Request) {
 	try {
-		const { phone } = await request.json();
+		const { phone } = (await request.json()) as { phone?: string };
 		if (!phone) return NextResponse.json({ error: 'Phone is required' }, { status: 400 });
 		const to = normalizePhone(phone);
 
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 		}
 
 		return NextResponse.json({ ok: true, token });
-	} catch (e: any) {
-		return NextResponse.json({ error: e.message }, { status: 500 });
+	} catch (e: unknown) {
+		return NextResponse.json({ error: e instanceof Error ? e.message : 'Internal error' }, { status: 500 });
 	}
 }

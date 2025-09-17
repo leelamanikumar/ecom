@@ -11,16 +11,28 @@ interface ProductListItem {
 	images: string[];
 }
 
+type ProductDraft = {
+	name: string;
+	slug: string;
+	description: string;
+	brand: string;
+	category: 'men' | 'women' | 'kids' | 'unisex';
+	sizes: number[];
+	price: number;
+	images: string[];
+	inStock: boolean;
+};
+
 export default function AdminPage() {
-	const [product, setProduct] = useState({
+	const [product, setProduct] = useState<ProductDraft>({
 		name: '',
 		slug: '',
 		description: '',
 		brand: '',
 		category: 'men',
-		sizes: [] as number[],
+		sizes: [],
 		price: 0,
-		images: [] as string[],
+		images: [],
 		inStock: true,
 	});
 	const [uploading, setUploading] = useState(false);
@@ -37,9 +49,9 @@ export default function AdminPage() {
 		setLoadingList(true);
 		try {
 			const res = await fetch('/api/products', { cache: 'no-store' });
-			const data = await res.json();
+			const data: ProductListItem[] = await res.json();
 			setList(data);
-		} catch (e: any) {
+		} catch (e: unknown) {
 			console.error(e);
 		} finally {
 			setLoadingList(false);
@@ -65,7 +77,7 @@ export default function AdminPage() {
 					throw new Error('Upload failed');
 				}
 
-				const data = await response.json();
+				const data: { public_id: string } = await response.json();
 				return data.public_id;
 			});
 
@@ -148,7 +160,7 @@ export default function AdminPage() {
 		if (res.ok) {
 			refreshList();
 		} else {
-			const data = await res.json();
+			const data: { error?: string } = await res.json();
 			alert('Delete failed: ' + (data?.error || res.statusText));
 		}
 	}
@@ -217,7 +229,7 @@ export default function AdminPage() {
 						</div>
 
 						<div>
-							<label className="block text-sm font-medium mb-2">Brand</label>
+							<label className="block text sm font-medium mb-2">Brand</label>
 							<input
 								type="text"
 								value={product.brand}
@@ -230,7 +242,7 @@ export default function AdminPage() {
 							<label className="block text-sm font-medium mb-2">Category</label>
 							<select
 								value={product.category}
-								onChange={(e) => setProduct(prev => ({ ...prev, category: e.target.value as any }))}
+								onChange={(e) => setProduct(prev => ({ ...prev, category: e.target.value as ProductDraft['category'] }))}
 								className="w-full border rounded px-3 py-2"
 							>
 								<option value="men">Men</option>
