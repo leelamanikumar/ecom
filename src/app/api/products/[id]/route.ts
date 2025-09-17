@@ -7,10 +7,10 @@ import { verifyAdminToken } from '@/lib/auth';
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { id: string } }
+	context: { params: Promise<{ id: string }> }
 ) {
 	await connectToDatabase();
-	const { id } = params;
+	const { id } = await context.params;
 	const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { slug: id };
 	const product = await Product.findOne(query).lean();
 	if (!product) {
@@ -21,14 +21,14 @@ export async function GET(
 
 export async function DELETE(
 	request: Request,
-	{ params }: { params: { id: string } }
+	context: { params: Promise<{ id: string }> }
 ) {
 	const token = cookies().get('admin_token')?.value;
 	if (!verifyAdminToken(token)) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 	}
 	await connectToDatabase();
-	const { id } = params;
+	const { id } = await context.params;
 	const query = mongoose.Types.ObjectId.isValid(id) ? { _id: id } : { slug: id };
 	const result = await Product.deleteOne(query);
 	if (result.deletedCount === 0) {
