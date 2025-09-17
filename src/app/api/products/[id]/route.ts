@@ -23,7 +23,8 @@ export async function DELETE(
 	request: Request,
 	context: { params: Promise<{ id: string }> }
 ) {
-	const token = cookies().get('admin_token')?.value;
+	const cookieStore = await cookies();
+	const token = cookieStore.get('admin_token')?.value;
 	if (!verifyAdminToken(token)) {
 		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 	}
