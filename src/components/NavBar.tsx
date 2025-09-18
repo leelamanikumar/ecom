@@ -27,31 +27,24 @@ export default function NavBar() {
 
 	return (
 		<header className="sticky top-0 z-40 bg-black text-white border-b border-gray-700">
-			<div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4 relative">
-				{/* Menu button */}
-				<button
-					aria-label="Open menu"
-					className="h-9 w-9 grid place-items-center border border-white/30 rounded hover:bg-white/10"
-					onClick={() => setMenuOpen((v) => !v)}
-				>
-					<span className="block w-5 h-0.5 bg-white mb-1" />
-					<span className="block w-5 h-0.5 bg-white mb-1" />
-					<span className="block w-5 h-0.5 bg-white" />
-				</button>
+			<div className="max-w-6xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex flex-wrap items-center gap-2 sm:gap-4 relative">
+				{/* Left: menu + brand */}
+				<div className="flex items-center gap-2 sm:gap-3">
+					<button
+						aria-label="Open menu"
+						className="h-9 w-9 grid place-items-center border border-white/30 rounded hover:bg-white/10"
+						onClick={() => setMenuOpen((v) => !v)}
+					>
+						<span className="block w-5 h-0.5 bg-white mb-1" />
+						<span className="block w-5 h-0.5 bg-white mb-1" />
+						<span className="block w-5 h-0.5 bg-white" />
+					</button>
 
-				<Link href="/" className="text-lg font-semibold whitespace-nowrap text-white">Footwear Store</Link>
+					<Link href="/" className="text-base sm:text-lg font-semibold whitespace-nowrap text-white">Footwear Store</Link>
+				</div>
 
-				<form onSubmit={onSubmit} className="flex-1 flex items-center gap-2">
-					<input
-						type="search"
-						placeholder="Search shoes, brands..."
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-						className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500"
-					/>
-					<button type="submit" className="px-3 py-2 bg-white text-black rounded text-sm hover:bg-gray-100">Search</button>
-				</form>
-				<nav className="flex items-center gap-4">
+				{/* Right: actions */}
+				<nav className="ml-auto flex items-center gap-3 sm:gap-4">
 					<div className="relative">
 						<button
 							type="button"
@@ -80,8 +73,21 @@ export default function NavBar() {
 					</Link>
 				</nav>
 
+				{/* Full-width search on mobile */}
+				<form onSubmit={onSubmit} className="order-3 w-full sm:order-none sm:flex-1 flex items-center gap-2 mt-2 sm:mt-0">
+					<input
+						type="search"
+						placeholder="Search shoes, brands..."
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white text-black placeholder:text-gray-500"
+					/>
+					<button type="submit" className="px-3 py-2 bg-white text-black rounded text-sm hover:bg-gray-100">Search</button>
+				</form>
+
+				{/* Legacy side menu dropdown */}
 				{menuOpen && (
-					<div className="absolute left-4 top-full mt-2 w-64 bg-white text-black border rounded shadow-lg overflow-hidden">
+					<div className="absolute left-3 top-full mt-2 w-64 bg-white text-black border rounded shadow-lg overflow-hidden">
 						<div className="py-2">
 							<Link href="/" className="block px-4 py-2 hover:bg-gray-50" onClick={closeMenu}>Shop</Link>
 							<button
