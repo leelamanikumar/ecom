@@ -34,25 +34,23 @@ export default function CheckoutFlow({ total }: { total: number }) {
 
 	async function confirmOrder() {
 		setError(null);
-		// Basic validation
 		if (!shipping.fullName || !shipping.address1 || !shipping.city || !shipping.state || !shipping.postalCode) {
 			setError('Please fill all required fields');
 			return;
 		}
 		setLoading(true);
 		try {
-			const res = await fetch('/api/order-email', {
+			const res = await fetch('/api/order', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ phone, shipping, cartTotal: total }),
+				body: JSON.stringify({ phone, shipping, total }),
 			});
-			const data: { ok?: boolean; error?: string } = await res.json();
-			if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to send email');
-			const id = `ORD-${Date.now().toString().slice(-6)}`;
-			setOrderId(id);
+			const data: { ok?: boolean; id?: string; error?: string } = await res.json();
+			if (!res.ok || !data?.ok || !data?.id) throw new Error(data?.error || 'Failed to save order');
+			setOrderId(data.id);
 			clear();
 			setStep('confirmed');
-			setInfo('We have received your details. We will contact you shortly.');
+			setInfo('We received your details.');
 		} catch (e: unknown) {
 			setError(e instanceof Error ? e.message : 'Failed to submit');
 		} finally {
