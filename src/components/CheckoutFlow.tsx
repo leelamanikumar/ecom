@@ -3,14 +3,12 @@
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
-type Step = 'phone' | 'otp' | 'shipping' | 'confirmed';
+type Step = 'phone' | 'shipping' | 'confirmed';
 
 export default function CheckoutFlow({ total }: { total: number }) {
 	const { clear } = useCart();
 	const [step, setStep] = useState<Step>('phone');
 	const [phone, setPhone] = useState('');
-	const [serverToken, setServerToken] = useState<string | null>(null);
-	const [otp, setOtp] = useState('');
 	const [info, setInfo] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -24,81 +22,42 @@ export default function CheckoutFlow({ total }: { total: number }) {
 	});
 	const [orderId, setOrderId] = useState<string | null>(null);
 
-	async function sendOtp() {
+	function continueToShipping() {
 		setError(null);
-		setInfo(null);
 		const digits = phone.replace(/\D/g, '');
 		if (digits.length < 10) {
 			setError('Please enter a valid 10-digit mobile number');
 			return;
 		}
-		setLoading(true);
-		try {
-			const res = await fetch('/api/otp/send', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ phone }),
-			});
-			const data: { ok?: boolean; token?: string; debugCode?: string; error?: string } = await res.json();
-			if (!res.ok || !data?.ok || !data?.token) {
-				throw new Error(data?.error || 'Failed to send OTP');
-			}
-			setServerToken(data.token);
-			setStep('otp');
-			if (data.debugCode) {
-				setInfo(`OTP sent on WhatsApp. Demo OTP: ${data.debugCode}`);
-			} else {
-				setInfo('OTP sent on WhatsApp. Please check your phone.');
-			}
-		} catch (e: unknown) {
-			setError(e instanceof Error ? e.message : 'Failed to send OTP');
-		} finally {
-			setLoading(false);
-		}
+		setStep('shipping');
 	}
 
-	async function verifyOtp() {
-		setError(null);
-		setInfo(null);
-		if (!serverToken) {
-			setError('Please request an OTP first');
-			return;
-		}
-		if (otp.trim().length !== 4) {
-			setError('Enter the 4-digit OTP');
-			return;
-		}
-		setLoading(true);
-		try {
-			const res = await fetch('/api/otp/verify', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ phone, code: otp.trim(), token: serverToken }),
-			});
-			const data: { ok?: boolean; error?: string } = await res.json();
-			if (!res.ok || !data?.ok) {
-				throw new Error(data?.error || 'Verification failed');
-			}
-			setInfo('Phone verified successfully.');
-			setStep('shipping');
-		} catch (e: unknown) {
-			setError(e instanceof Error ? e.message : 'Verification failed');
-		} finally {
-			setLoading(false);
-		}
-	}
-
-	function confirmOrder() {
+	async function confirmOrder() {
 		setError(null);
 		// Basic validation
 		if (!shipping.fullName || !shipping.address1 || !shipping.city || !shipping.state || !shipping.postalCode) {
 			setError('Please fill all required fields');
 			return;
 		}
-		const id = `ORD-${Date.now().toString().slice(-6)}`;
-		setOrderId(id);
-		clear();
-		setStep('confirmed');
+		setLoading(true);
+		try {
+			const res = await fetch('/api/order-email', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ phone, shipping, cartTotal: total }),
+			});
+			const data: { ok?: boolean; error?: string } = await res.json();
+			if (!res.ok || !data?.ok) throw new Error(data?.error || 'Failed to send email');
+			const id = `ORD-${Date.now().toString().slice(-6)}`;
+			setOrderId(id);
+			clear();
+			setStep('confirmed');
+			setInfo('We have received your details. We will contact you shortly.');
+		} catch (e: unknown) {
+			setError(e instanceof Error ? e.message : 'Failed to submit');
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	return (
@@ -109,7 +68,7 @@ export default function CheckoutFlow({ total }: { total: number }) {
 
 			{step === 'phone' && (
 				<div className="space-y-3">
-					<label className="block text-sm font-medium">Mobile number (WhatsApp)</label>
+					<label className="block text-sm font-medium">Mobile number</label>
 					<input
 						type="tel"
 						placeholder="Enter 10-digit mobile number"
@@ -117,25 +76,7 @@ export default function CheckoutFlow({ total }: { total: number }) {
 						onChange={(e) => setPhone(e.target.value)}
 						className="w-full border rounded px-3 py-2"
 					/>
-					<button onClick={sendOtp} disabled={loading} className="px-4 py-2 bg-black text-white rounded disabled:opacity-50">{loading ? 'Sending…' : 'Send OTP via WhatsApp'}</button>
-				</div>
-			)}
-
-			{step === 'otp' && (
-				<div className="space-y-3">
-					<label className="block text-sm font-medium">Enter 4-digit OTP</label>
-					<input
-						type="text"
-						inputMode="numeric"
-						maxLength={4}
-						value={otp}
-						onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-						className="w-32 border rounded px-3 py-2 tracking-widest text-center"
-					/>
-					<div className="flex gap-2">
-						<button onClick={verifyOtp} disabled={loading} className="px-4 py-2 bg-black text-white rounded disabled:opacity-50">{loading ? 'Verifying…' : 'Verify'}</button>
-						<button onClick={sendOtp} disabled={loading} className="px-4 py-2 border rounded">Resend OTP</button>
-					</div>
+					<button onClick={continueToShipping} className="px-4 py-2 bg-black text-white rounded disabled:opacity-50">Continue</button>
 				</div>
 			)}
 
@@ -169,7 +110,7 @@ export default function CheckoutFlow({ total }: { total: number }) {
 					</div>
 					<div className="flex items-center justify-between pt-2">
 						<div className="font-semibold">Total: ₹{total.toFixed(2)}</div>
-						<button onClick={confirmOrder} className="px-4 py-2 bg-black text-white rounded">Confirm order</button>
+						<button onClick={confirmOrder} disabled={loading} className="px-4 py-2 bg-black text-white rounded disabled:opacity-50">{loading ? 'Submitting…' : 'Confirm order'}</button>
 					</div>
 				</div>
 			)}
@@ -177,9 +118,9 @@ export default function CheckoutFlow({ total }: { total: number }) {
 			{step === 'confirmed' && (
 				<div className="text-center space-y-2">
 					<div className="text-2xl">✅</div>
-					<div className="text-lg font-semibold">Order confirmed!</div>
+					<div className="text-lg font-semibold">Order placed!</div>
 					{orderId && <div className="text-sm text-gray-600">Order ID: {orderId}</div>}
-					<div className="text-sm text-gray-600">Thank you for your purchase.</div>
+					<div className="text-sm text-gray-600">We&apos;ll contact you shortly.</div>
 				</div>
 			)}
 		</div>
