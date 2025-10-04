@@ -1,12 +1,14 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import { Product } from "@/models/Product";
 import { getProductImageUrl } from "@/lib/cloudinary";
+import BackButton from "@/components/BackButton";
 
 export const dynamic = 'force-dynamic';
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
 	await connectToDatabase();
-	const q = (searchParams.q || '').trim();
+	const resolvedSearchParams = await searchParams;
+	const q = (resolvedSearchParams.q || '').trim();
 	const query = q
 		? { $text: { $search: q } }
 		: {};
@@ -14,6 +16,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
 	return (
 		<div className="max-w-6xl mx-auto p-6">
+			<div className="mb-6">
+				<BackButton />
+			</div>
 			<h1 className="text-2xl font-semibold mb-4">Search</h1>
 			<form action="/search" className="flex gap-2 mb-6">
 				<input name="q" defaultValue={q} placeholder="Search shoes, brands..." className="w-full border rounded px-3 py-2 text-sm" />

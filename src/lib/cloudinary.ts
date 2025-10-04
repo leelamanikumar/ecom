@@ -1,4 +1,4 @@
-// Server-side only Cloudinary functions
+// Cloudinary URL helpers (safe for both server and client usage)
 export function getOptimizedImageUrl(publicId: string, options: {
   width?: number;
   height?: number;
@@ -12,9 +12,12 @@ export function getOptimizedImageUrl(publicId: string, options: {
     format = 'auto'
   } = options;
 
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  // Prefer public env var so this works in client components too
+  const cloudName =
+    (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as string | undefined) ||
+    (process.env.CLOUDINARY_CLOUD_NAME as string | undefined);
   if (!cloudName) {
-    console.warn('CLOUDINARY_CLOUD_NAME not set');
+    // Fallback: return the given publicId as-is (may be a full URL already)
     return publicId; // fallback to original URL
   }
 

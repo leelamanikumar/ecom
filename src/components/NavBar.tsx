@@ -90,6 +90,7 @@ export default function NavBar() {
 					<div className="absolute left-3 top-full mt-2 w-64 bg-white text-black border rounded shadow-lg overflow-hidden">
 						<div className="py-2">
 							<Link href="/" className="block px-4 py-2 hover:bg-gray-50" onClick={closeMenu}>Shop</Link>
+							<Link href="/orders" className="block px-4 py-2 hover:bg-gray-50" onClick={closeMenu}>View Orders</Link>
 							<button
 								className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center justify-between"
 								onClick={() => setCategoriesOpen((v) => !v)}

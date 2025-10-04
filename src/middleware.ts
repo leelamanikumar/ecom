@@ -12,7 +12,9 @@ export async function middleware(request: NextRequest) {
 	if (!isAdminPath && !isProtectedApi) return NextResponse.next();
 
 	const token = request.cookies.get('admin_token')?.value;
+	console.log('Middleware triggered for:', pathname, 'Token exists:', !!token);
 	const ok = await verifyAdminTokenEdge(token);
+	console.log('Token verification result:', ok);
 	if (ok) return NextResponse.next();
 
 	if (isAdminPath) {

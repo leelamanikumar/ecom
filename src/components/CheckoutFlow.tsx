@@ -6,7 +6,7 @@ import { useCart } from "@/context/CartContext";
 type Step = 'phone' | 'shipping' | 'confirmed';
 
 export default function CheckoutFlow({ total }: { total: number }) {
-	const { clear } = useCart();
+	const { state, clear } = useCart();
 	const [step, setStep] = useState<Step>('phone');
 	const [phone, setPhone] = useState('');
 	const [info, setInfo] = useState<string | null>(null);
@@ -29,6 +29,7 @@ export default function CheckoutFlow({ total }: { total: number }) {
 			setError('Please enter a valid 10-digit mobile number');
 			return;
 		}
+    try { localStorage.setItem('lastPhone', digits); } catch {}
 		setStep('shipping');
 	}
 
@@ -43,14 +44,23 @@ export default function CheckoutFlow({ total }: { total: number }) {
 			const res = await fetch('/api/order', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ phone, shipping, total }),
+				body: JSON.stringify({ phone, shipping, total, items: state.items }),
 			});
 			const data: { ok?: boolean; id?: string; error?: string } = await res.json();
 			if (!res.ok || !data?.ok || !data?.id) throw new Error(data?.error || 'Failed to save order');
-			setOrderId(data.id);
-			clear();
-			setStep('confirmed');
-			setInfo('We received your details.');
+            setOrderId(data.id);
+            clear();
+            setStep('confirmed');
+            setInfo('We received your details.');
+            try { localStorage.setItem('lastPhone', phone.replace(/\D/g, '')); } catch {}
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('order', 'placed');
+                url.searchParams.set('orderId', data.id);
+                window.history.replaceState(null, '', url.toString());
+                // notify other components (e.g., cart page) without reload
+                window.dispatchEvent(new CustomEvent('order:placed', { detail: { orderId: data.id } }));
+            } catch {}
 		} catch (e: unknown) {
 			setError(e instanceof Error ? e.message : 'Failed to submit');
 		} finally {

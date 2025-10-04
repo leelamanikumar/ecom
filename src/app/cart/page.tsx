@@ -4,6 +4,7 @@ import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CheckoutFlow from "@/components/CheckoutFlow";
+import BackButton from "@/components/BackButton";
 import { getProductImageUrl } from "@/lib/cloudinary";
 
 export default function CartPage() {
@@ -11,6 +12,8 @@ export default function CartPage() {
 	const items = state.items;
 	const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 	const [showCheckout, setShowCheckout] = useState(false);
+	const [orderPlaced, setOrderPlaced] = useState(false);
+	const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
@@ -18,6 +21,19 @@ export default function CartPage() {
 			if (url.searchParams.get('checkout') === '1') {
 				setShowCheckout(true);
 			}
+			if (url.searchParams.get('order') === 'placed') {
+				setOrderPlaced(true);
+				setPlacedOrderId(url.searchParams.get('orderId'));
+			}
+
+			const handler = (e: Event) => {
+				const detail = (e as CustomEvent).detail as { orderId?: string } | undefined;
+				setOrderPlaced(true);
+				setPlacedOrderId(detail?.orderId ?? null);
+				setShowCheckout(false);
+			};
+			window.addEventListener('order:placed', handler as EventListener);
+			return () => window.removeEventListener('order:placed', handler as EventListener);
 		}
 	}, []);
 
@@ -41,11 +57,38 @@ export default function CartPage() {
 
 	return (
 		<div className="max-w-4xl mx-auto p-6">
+			<div className="mb-6">
+				<BackButton />
+			</div>
 			<h1 className="text-2xl font-semibold mb-4">Your Cart</h1>
+
+			{orderPlaced && (
+				<div className="mb-4 rounded border border-green-200 bg-green-50 text-green-800 px-4 py-3">
+					<div className="font-medium">Your order has been placed!</div>
+					{placedOrderId && <div className="text-sm">Order ID: {placedOrderId}</div>}
+					<div className="mt-2 flex gap-3">
+						<Link href="/orders" className="inline-flex items-center px-3 py-1.5 rounded bg-green-600 text-white hover:opacity-90">View orders</Link>
+						<Link href="/" className="inline-flex items-center px-3 py-1.5 rounded border border-green-300 text-green-800 hover:bg-green-100">Continue shopping</Link>
+					</div>
+				</div>
+			)}
 
 			{items.length === 0 ? (
 				<div className="text-gray-600">
-					Your cart is empty. <Link href="/" className="text-blue-600 underline">Continue shopping</Link>
+					{orderPlaced ? (
+						<div>
+							<div className="font-medium mb-1">Thank you! Your order is placed.</div>
+							{placedOrderId && <div className="text-sm mb-2">Order ID: {placedOrderId}</div>}
+							<div className="flex gap-3">
+								<Link href="/orders" className="text-blue-600 underline">View orders</Link>
+								<Link href="/" className="text-blue-600 underline">Continue shopping</Link>
+							</div>
+						</div>
+					) : (
+						<div>
+							Your cart is empty. <Link href="/" className="text-blue-600 underline">Continue shopping</Link>
+						</div>
+					)}
 				</div>
 			) : (
 				<div className="grid grid-cols-1 gap-6">

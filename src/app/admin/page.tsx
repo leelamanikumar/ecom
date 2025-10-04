@@ -40,9 +40,12 @@ export default function AdminPage() {
 	const [message, setMessage] = useState('');
 	const [list, setList] = useState<ProductListItem[]>([]);
 	const [loadingList, setLoadingList] = useState(true);
+	const [orders, setOrders] = useState<Array<{ _id: string; phone: string; total: number; delivered: boolean; createdAt: string }>>([]);
+	const [loadingOrders, setLoadingOrders] = useState(false);
 
 	useEffect(() => {
 		refreshList();
+		refreshOrders();
 	}, []);
 
 	async function refreshList() {
@@ -55,6 +58,37 @@ export default function AdminPage() {
 			console.error(e);
 		} finally {
 			setLoadingList(false);
+		}
+	}
+
+	async function refreshOrders() {
+		setLoadingOrders(true);
+		try {
+			const res = await fetch('/api/order', { cache: 'no-store' });
+			const data = await res.json();
+			setOrders(data);
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setLoadingOrders(false);
+		}
+	}
+
+	async function markDelivered(id: string, delivered: boolean) {
+		try {
+			const res = await fetch('/api/order', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id, delivered }),
+			});
+			if (!res.ok) {
+				const data = await res.json();
+				alert(data?.error || 'Failed to update order');
+				return;
+			}
+			refreshOrders();
+		} catch (e) {
+			alert((e as Error).message);
 		}
 	}
 
@@ -189,6 +223,30 @@ export default function AdminPage() {
 									<div className="text-sm text-gray-500">₹{p.price.toFixed(2)}</div>
 								</div>
 								<button className="px-3 py-1 border rounded" onClick={() => deleteProduct(p.slug || p._id)}>Delete</button>
+							</li>
+						))}
+					</ul>
+				)}
+			</section>
+
+			<section className="mb-10">
+				<h2 className="text-lg font-semibold mb-3">Orders</h2>
+				{loadingOrders ? (
+					<p>Loading…</p>
+				) : orders.length === 0 ? (
+					<p>No orders yet.</p>
+				) : (
+					<ul className="divide-y border rounded">
+						{orders.map((o) => (
+							<li key={o._id} className="p-3 flex items-center justify-between gap-3">
+								<div>
+									<div className="font-medium">{o.phone}</div>
+									<div className="text-sm text-gray-600">₹{o.total.toFixed(2)} • {new Date(o.createdAt).toLocaleString()}</div>
+								</div>
+								<div className="flex items-center gap-3">
+									<span className={`text-sm ${o.delivered ? 'text-green-700' : 'text-orange-700'}`}>{o.delivered ? 'Delivered' : 'Pending'}</span>
+									<button className="px-3 py-1 border rounded" onClick={() => markDelivered(o._id, !o.delivered)}>{o.delivered ? 'Mark Pending' : 'Mark Delivered'}</button>
+								</div>
 							</li>
 						))}
 					</ul>

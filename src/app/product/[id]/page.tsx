@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/mongodb';
 import { Product as ProductModel } from '@/models/Product';
 import mongoose from 'mongoose';
 import AddToCart from '@/components/AddToCart';
+import BackButton from '@/components/BackButton';
 import { getProductImageUrl } from '@/lib/cloudinary';
 
 interface Product {
@@ -32,6 +33,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
 	return (
 		<div className="min-h-screen p-6 sm:p-10">
+			<div className="mb-6">
+				<BackButton />
+			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 				<div>
 					<div className="aspect-square w-full bg-gray-100 rounded overflow-hidden">
