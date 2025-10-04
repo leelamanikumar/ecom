@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import { Order } from '@/models/Order';
+import mongoose from 'mongoose';
 
 export async function POST(request: Request) {
 	try {
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
     if (status === 'delivered') filter.delivered = true;
     if (status === 'pending') filter.delivered = false;
 
-    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean();
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean<{ _id: mongoose.Types.ObjectId }[]>();
     return NextResponse.json(orders.map(o => ({
       _id: o._id.toString(),
       phone: o.phone,
