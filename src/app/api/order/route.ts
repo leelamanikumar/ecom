@@ -51,7 +51,32 @@ export async function GET(request: Request) {
     if (status === 'delivered') filter.delivered = true;
     if (status === 'pending') filter.delivered = false;
 
-    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean<{ _id: mongoose.Types.ObjectId; phone: string; shipping: any; items: any[]; total: number; delivered: boolean; deliveredAt: Date | null; createdAt: Date; updatedAt: Date }[]>();
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).lean<{ 
+      _id: mongoose.Types.ObjectId; 
+      phone: string; 
+      shipping: {
+        fullName: string;
+        address1: string;
+        address2?: string;
+        city: string;
+        state: string;
+        postalCode: string;
+      }; 
+      items: Array<{
+        productId: string;
+        name: string;
+        slug?: string;
+        image?: string;
+        price: number;
+        size?: number;
+        quantity: number;
+      }>; 
+      total: number; 
+      delivered: boolean; 
+      deliveredAt: Date | null; 
+      createdAt: Date; 
+      updatedAt: Date 
+    }[]>();
     return NextResponse.json(orders.map(o => ({
       _id: o._id.toString(),
       phone: o.phone,
