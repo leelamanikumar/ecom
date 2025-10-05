@@ -42,7 +42,8 @@ export default function CartPage() {
 		try {
 			const u = new URL(url);
 			if (!u.hostname.includes('res.cloudinary.com')) return url;
-			u.pathname = u.pathname.replace('/upload/', '/upload/w_150,h_150,c_fill,g_auto,q_auto,f_auto/');
+			// Use a larger size for better quality thumbnails
+			u.pathname = u.pathname.replace('/upload/', '/upload/w_200,h_200,c_fill,g_auto,q_auto,f_auto/');
 			return u.toString();
 		} catch {
 			return url;
@@ -52,7 +53,8 @@ export default function CartPage() {
 	function resolveThumb(src?: string) {
 		if (!src) return undefined;
 		if (/^https?:\/\//i.test(src)) return cloudinaryThumbFromUrl(src);
-		return getProductImageUrl(src, 'thumbnail');
+		// Use medium size instead of thumbnail for better quality
+		return getProductImageUrl(src, 'medium');
 	}
 
 	return (
@@ -94,45 +96,71 @@ export default function CartPage() {
 				<div className="grid grid-cols-1 gap-6">
 					<ul className="divide-y border rounded">
 						{items.map((i) => (
-							<li key={`${i.productId}-${i.size ?? 'na'}`} className="p-4 flex items-center gap-4">
-								<div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-									{resolveThumb(i.image) ? (
-										<img 
-											src={resolveThumb(i.image)} 
-											alt={i.name} 
-											className="w-full h-full object-cover" 
-											onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/vercel.svg'; }}
+							<li key={`${i.productId}-${i.size ?? 'na'}`} className="p-4">
+								<div className="flex flex-col sm:flex-row sm:items-center gap-4">
+									{/* Product Image */}
+									<div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 mx-auto sm:mx-0">
+										{resolveThumb(i.image) ? (
+											<img 
+												src={resolveThumb(i.image)} 
+												alt={i.name} 
+												className="w-full h-full object-cover" 
+												onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/vercel.svg'; }}
+											/>
+										) : (
+											<div className="w-full h-full grid place-items-center text-gray-400 text-xs">No image</div>
+										)}
+									</div>
+									
+									{/* Product Info */}
+									<div className="flex-1 min-w-0 text-center sm:text-left">
+										<Link href={`/product/${i.slug ?? i.productId}`} className="font-medium hover:underline block" title={i.name}>{i.name}</Link>
+										<div className="text-sm text-gray-500">{i.size ? `Size ${i.size}` : 'One size'}</div>
+										<div className="mt-1 font-semibold">₹{i.price.toFixed(2)}</div>
+									</div>
+									
+									{/* Quantity Controls */}
+									<div className="flex items-center justify-center gap-2">
+										<button 
+											className="w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-50" 
+											onClick={() => changeQty(i.productId, i.size, Math.max(1, i.quantity - 1))}
+											aria-label="Decrease quantity"
+										>
+											-
+										</button>
+										<input
+											type="number"
+											min={1}
+											value={i.quantity}
+											onChange={(e) => changeQty(i.productId, i.size, parseInt(e.target.value || '1', 10))}
+											className="w-16 text-center border rounded py-1"
 										/>
-									) : (
-										<div className="w-full h-full grid place-items-center text-gray-400">No image</div>
-									)}
+										<button 
+											className="w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-50" 
+											onClick={() => changeQty(i.productId, i.size, i.quantity + 1)}
+											aria-label="Increase quantity"
+										>
+											+
+										</button>
+									</div>
+									
+									{/* Remove Button */}
+									<button 
+										className="text-red-600 hover:underline text-sm px-2 py-1 rounded hover:bg-red-50" 
+										onClick={() => removeItem(i.productId, i.size)}
+									>
+										Remove
+									</button>
 								</div>
-								<div className="flex-1 min-w-0">
-									<Link href={`/product/${i.slug ?? i.productId}`} className="font-medium hover:underline truncate block" title={i.name}>{i.name}</Link>
-									<div className="text-sm text-gray-500">{i.size ? `Size ${i.size}` : 'One size'}</div>
-									<div className="mt-1 font-semibold">₹{i.price.toFixed(2)}</div>
-								</div>
-								<div className="flex items-center gap-2">
-									<button className="px-2 py-1 border rounded" onClick={() => changeQty(i.productId, i.size, Math.max(1, i.quantity - 1))}>-</button>
-									<input
-										type="number"
-										min={1}
-										value={i.quantity}
-										onChange={(e) => changeQty(i.productId, i.size, parseInt(e.target.value || '1', 10))}
-										className="w-16 text-center border rounded py-1"
-									/>
-									<button className="px-2 py-1 border rounded" onClick={() => changeQty(i.productId, i.size, i.quantity + 1)}>+</button>
-								</div>
-								<button className="ml-4 text-red-600 hover:underline" onClick={() => removeItem(i.productId, i.size)}>Remove</button>
 							</li>
 						))}
 					</ul>
 
-					<div className="flex items-center justify-between">
-						<div className="text-xl font-semibold">Total: ₹{total.toFixed(2)}</div>
-						<div className="flex gap-3">
-							<button className="px-4 py-2 border rounded" onClick={clear}>Clear cart</button>
-							<button className="px-4 py-2 bg-black text-white rounded" onClick={() => setShowCheckout((v) => !v)}>{showCheckout ? 'Hide' : 'Checkout'}</button>
+					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-gray-50 rounded">
+						<div className="text-xl font-semibold text-center sm:text-left">Total: ₹{total.toFixed(2)}</div>
+						<div className="flex flex-col sm:flex-row gap-3">
+							<button className="px-4 py-2 border rounded hover:bg-gray-100" onClick={clear}>Clear cart</button>
+							<button className="px-4 py-2 bg-black text-white rounded hover:opacity-90" onClick={() => setShowCheckout((v) => !v)}>{showCheckout ? 'Hide' : 'Checkout'}</button>
 						</div>
 					</div>
 
