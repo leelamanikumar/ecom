@@ -52,9 +52,19 @@ export default function CartPage() {
 
 	function resolveThumb(src?: string) {
 		if (!src) return undefined;
-		if (/^https?:\/\//i.test(src)) return cloudinaryThumbFromUrl(src);
-		// Use medium size instead of thumbnail for better quality
-		return getProductImageUrl(src, 'medium');
+		
+		// If it's already a full URL, use it directly
+		if (/^https?:\/\//i.test(src)) {
+			return cloudinaryThumbFromUrl(src);
+		}
+		
+		// If it's a Cloudinary public ID, generate the URL
+		try {
+			return getProductImageUrl(src, 'medium');
+		} catch (error) {
+			console.error('Error generating image URL:', error);
+			return undefined;
+		}
 	}
 
 	return (
@@ -99,17 +109,22 @@ export default function CartPage() {
 							<li key={`${i.productId}-${i.size ?? 'na'}`} className="p-4">
 								<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 									{/* Product Image */}
-									<div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 mx-auto sm:mx-0">
+									<div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 mx-auto sm:mx-0 relative">
 										{resolveThumb(i.image) ? (
 											<img 
 												src={resolveThumb(i.image)} 
 												alt={i.name} 
 												className="w-full h-full object-cover" 
-												onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/vercel.svg'; }}
+												onError={(e) => { 
+													(e.currentTarget as HTMLImageElement).style.display = 'none';
+													const fallback = (e.currentTarget as HTMLImageElement).parentElement?.querySelector('.fallback');
+													if (fallback) fallback.classList.remove('hidden');
+												}}
 											/>
-										) : (
-											<div className="w-full h-full grid place-items-center text-gray-400 text-xs">No image</div>
-										)}
+										) : null}
+										<div className={`fallback w-full h-full grid place-items-center text-gray-400 text-xs ${resolveThumb(i.image) ? 'hidden' : ''}`}>
+											No image
+										</div>
 									</div>
 									
 									{/* Product Info */}
@@ -117,6 +132,11 @@ export default function CartPage() {
 										<Link href={`/product/${i.slug ?? i.productId}`} className="font-medium hover:underline block" title={i.name}>{i.name}</Link>
 										<div className="text-sm text-gray-500">{i.size ? `Size ${i.size}` : 'One size'}</div>
 										<div className="mt-1 font-semibold">₹{i.price.toFixed(2)}</div>
+										{/* Debug info - remove this later */}
+										<div className="text-xs text-gray-400 mt-1">
+											Image: {i.image ? 'Present' : 'Missing'} | 
+											Resolved: {resolveThumb(i.image) ? 'Yes' : 'No'}
+										</div>
 									</div>
 									
 									{/* Quantity Controls */}
