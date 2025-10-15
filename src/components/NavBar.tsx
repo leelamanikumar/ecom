@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, FormEvent, useMemo } from "react";
+import { useState, FormEvent, useMemo, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 
 export default function NavBar() {
@@ -13,6 +13,10 @@ export default function NavBar() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [categoriesOpen, setCategoriesOpen] = useState(true);
 	const [topCategoriesOpen, setTopCategoriesOpen] = useState(false);
+	
+	// Refs for click outside detection
+	const menuRef = useRef<HTMLDivElement>(null);
+	const categoriesRef = useRef<HTMLDivElement>(null);
 
 	function onSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -24,6 +28,31 @@ export default function NavBar() {
 	function closeMenu() {
 		setMenuOpen(false);
 	}
+
+	// Handle click outside to close dropdowns
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			// Close hamburger menu if clicking outside
+			if (menuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+				setMenuOpen(false);
+			}
+			
+			// Close categories dropdown if clicking outside
+			if (topCategoriesOpen && categoriesRef.current && !categoriesRef.current.contains(event.target as Node)) {
+				setTopCategoriesOpen(false);
+			}
+		}
+
+		// Add event listener when dropdowns are open
+		if (menuOpen || topCategoriesOpen) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+
+		// Cleanup event listener
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [menuOpen, topCategoriesOpen]);
 
 	return (
 		<header className="sticky top-0 z-40 bg-black text-white border-b border-gray-700">
@@ -45,7 +74,7 @@ export default function NavBar() {
 
 				{/* Right: actions */}
 				<nav className="ml-auto flex items-center gap-3 sm:gap-4">
-					<div className="relative">
+					<div className="relative" ref={categoriesRef}>
 						<button
 							type="button"
 							className="text-sm hover:underline text-white"
@@ -87,7 +116,7 @@ export default function NavBar() {
 
 				{/* Legacy side menu dropdown */}
 				{menuOpen && (
-					<div className="absolute left-3 top-full mt-2 w-64 bg-white text-black border rounded shadow-lg overflow-hidden">
+					<div ref={menuRef} className="absolute left-3 top-full mt-2 w-64 bg-white text-black border rounded shadow-lg overflow-hidden">
 						<div className="py-2">
 							<Link href="/" className="block px-4 py-2 hover:bg-gray-50" onClick={closeMenu}>Shop</Link>
 							<Link href="/orders" className="block px-4 py-2 hover:bg-gray-50" onClick={closeMenu}>View Orders</Link>

@@ -60,7 +60,11 @@ export default function CartPage() {
 		
 		// If it's a Cloudinary public ID, generate the URL
 		try {
-			return getProductImageUrl(src, 'medium');
+			const url = getProductImageUrl(src, 'medium');
+			// If env vars are missing in production, this may return a bare publicId
+			// Guard against returning non-URLs which would break the <img src>
+			if (!/^https?:\/\//i.test(url)) return undefined;
+			return url;
 		} catch (error) {
 			console.error('Error generating image URL:', error);
 			return undefined;

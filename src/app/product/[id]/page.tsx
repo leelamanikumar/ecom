@@ -27,8 +27,9 @@ async function getProduct(idOrSlug: string): Promise<Product | null> {
 	return { ...doc, _id: doc._id.toString() } as unknown as Product;
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-	const product = await getProduct(params.id);
+export default async function ProductPage(context: { params: Promise<{ id: string }> }) {
+	const { id } = await context.params;
+	const product = await getProduct(id);
 	if (!product) return notFound();
 
 	return (
