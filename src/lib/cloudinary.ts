@@ -29,7 +29,8 @@ export function getOptimizedImageUrl(publicId: string, options: {
     `c_fill`,
     `g_auto`,
     `q_${quality}`,
-    `f_${format}`
+    `f_${format}`,
+    `fl_progressive` // Progressive JPEG for better loading experience
   ].join(',');
 
   return `${baseUrl}/${transformations}/${publicId}`;
@@ -38,9 +39,9 @@ export function getOptimizedImageUrl(publicId: string, options: {
 // Helper for product images with different sizes
 export function getProductImageUrl(publicId: string, size: 'thumbnail' | 'medium' | 'large' = 'medium') {
   const sizes = {
-    thumbnail: { width: 150, height: 150 },
-    medium: { width: 400, height: 400 },
-    large: { width: 800, height: 800 }
+    thumbnail: { width: 150, height: 150, quality: 80 },
+    medium: { width: 400, height: 400, quality: 85 },
+    large: { width: 800, height: 800, quality: 90 }
   };
 
   return getOptimizedImageUrl(publicId, sizes[size]);

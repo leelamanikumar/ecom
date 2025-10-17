@@ -2,6 +2,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Product } from "@/models/Product";
 import { getProductImageUrl } from "@/lib/cloudinary";
 import BackButton from "@/components/BackButton";
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,13 +30,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 				{products.map((p) => (
 					<li key={p._id as string} className="border rounded p-4">
 						<a href={`/product/${p.slug || p._id}`} className="block">
-							<div className="aspect-square w-full bg-gray-100 rounded mb-3 overflow-hidden">
+							<div className="aspect-square w-full bg-gray-100 rounded mb-3 overflow-hidden relative">
 								{p.images?.[0] ? (
-									<img 
+									<Image 
 										src={getProductImageUrl(p.images[0], 'medium')} 
 										alt={p.name} 
-										className="w-full h-full object-cover" 
-										loading="lazy"
+										fill
+										className="object-cover" 
+										sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+										placeholder="blur"
+										blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
 									/>
 								) : (
 									<div className="w-full h-full grid place-items-center text-gray-400">No image</div>

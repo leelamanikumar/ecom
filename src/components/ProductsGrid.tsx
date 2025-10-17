@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getProductImageUrl } from "@/lib/cloudinary";
 
 interface ProductItem {
@@ -73,13 +74,16 @@ export default function ProductsGrid() {
 					{items.map((p) => (
 						<li key={p._id} className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
 							<Link href={`/product/${p.slug || p._id}`} className="block">
-								<div className="aspect-[4/5] sm:aspect-square w-full bg-gray-100 rounded mb-3 overflow-hidden">
+								<div className="aspect-[4/5] sm:aspect-square w-full bg-gray-100 rounded mb-3 overflow-hidden relative">
 									{p.images?.[0] ? (
-										<img
+										<Image
 											src={getProductImageUrl(p.images[0], 'medium')}
 											alt={p.name}
-											className="w-full h-full object-contain sm:object-cover"
-											loading="lazy"
+											fill
+											className="object-contain sm:object-cover"
+											sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+											placeholder="blur"
+											blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
 										/>
 									) : (
 										<div className="w-full h-full grid place-items-center text-gray-400">No image</div>
@@ -97,7 +101,7 @@ export default function ProductsGrid() {
 			<div className="mt-6 flex justify-center">
 				{hasMore ? (
 					<button
-						className="px-4 py-2 rounded bg-black text-white disabled:opacity-60"
+						className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white disabled:opacity-60"
 						onClick={() => fetchPage(skip)}
 						disabled={isLoading}
 					>

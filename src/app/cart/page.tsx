@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import CheckoutFlow from "@/components/CheckoutFlow";
 import BackButton from "@/components/BackButton";
+import Image from "next/image";
 import { getProductImageUrl } from "@/lib/cloudinary";
 
 export default function CartPage() {
@@ -115,20 +116,20 @@ export default function CartPage() {
 									{/* Product Image */}
 									<div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 mx-auto sm:mx-0 relative">
 										{resolveThumb(i.image) ? (
-											<img 
+											<Image 
 												src={resolveThumb(i.image)} 
 												alt={i.name} 
-												className="w-full h-full object-cover" 
-												onError={(e) => { 
-													(e.currentTarget as HTMLImageElement).style.display = 'none';
-													const fallback = (e.currentTarget as HTMLImageElement).parentElement?.querySelector('.fallback');
-													if (fallback) fallback.classList.remove('hidden');
-												}}
+												fill
+												className="object-cover" 
+												sizes="80px"
+												placeholder="blur"
+												blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
 											/>
-										) : null}
-										<div className={`fallback w-full h-full grid place-items-center text-gray-400 text-xs ${resolveThumb(i.image) ? 'hidden' : ''}`}>
-											No image
-										</div>
+										) : (
+											<div className="w-full h-full grid place-items-center text-gray-400 text-xs">
+												No image
+											</div>
+										)}
 									</div>
 									
 									{/* Product Info */}

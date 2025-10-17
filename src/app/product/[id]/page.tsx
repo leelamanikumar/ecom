@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import AddToCart from '@/components/AddToCart';
 import BackButton from '@/components/BackButton';
 import { getProductImageUrl } from '@/lib/cloudinary';
+import Image from 'next/image';
 
 interface Product {
 	_id: string;
@@ -39,12 +40,17 @@ export default async function ProductPage(context: { params: Promise<{ id: strin
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 				<div>
-					<div className="aspect-square w-full bg-gray-100 rounded overflow-hidden">
+					<div className="aspect-square w-full bg-gray-100 rounded overflow-hidden relative">
 						{product.images?.[0] ? (
-							<img 
+							<Image 
 								src={getProductImageUrl(product.images[0], 'large')} 
 								alt={product.name} 
-								className="w-full h-full object-cover" 
+								fill
+								className="object-cover" 
+								priority
+								sizes="(max-width: 768px) 100vw, 50vw"
+								placeholder="blur"
+								blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
 							/>
 						) : (
 							<div className="w-full h-full grid place-items-center text-gray-400">No image</div>
