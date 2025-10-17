@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getProductImageUrl } from "@/lib/cloudinary";
 
 interface ProductListItem {
@@ -211,13 +212,13 @@ export default function AdminPage() {
 					<ul className="divide-y border rounded">
 						{list.map((p) => (
 							<li key={p._id} className="p-3 flex items-center gap-3">
-								<div className="w-14 h-14 bg-gray-100 rounded overflow-hidden">
-									{p.images?.[0] ? (
-										<img src={getProductImageUrl(p.images[0], 'thumbnail')} alt={p.name} className="w-full h-full object-cover" />
-									) : (
-										<div className="w-full h-full grid place-items-center text-gray-400">No</div>
-									)}
-								</div>
+                                <div className="w-14 h-14 bg-gray-100 rounded overflow-hidden">
+                                    {p.images?.[0] ? (
+                                        <Image src={getProductImageUrl(p.images[0], 'thumbnail')} alt={p.name} width={56} height={56} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full grid place-items-center text-gray-400">No</div>
+                                    )}
+                                </div>
 								<div className="flex-1 min-w-0">
 									<div className="font-medium truncate">{p.name}</div>
 									<div className="text-sm text-gray-500">₹{p.price.toFixed(2)}</div>
@@ -380,24 +381,26 @@ export default function AdminPage() {
 						/>
 						{uploading && <p className="text-sm text-gray-600">Uploading...</p>}
 						
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-							{product.images.map((publicId, index) => (
-								<div key={index} className="relative">
-									<img
-										src={getProductImageUrl(publicId, 'thumbnail')}
-										alt={`Product ${index + 1}`}
-										className="w-full h-24 object-cover rounded border"
-									/>
-									<button
-										type="button"
-										onClick={() => removeImage(index)}
-										className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
-									>
-										×
-									</button>
-								</div>
-							))}
-						</div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {product.images.map((publicId, index) => (
+                                <div key={index} className="relative">
+                                    <Image
+                                        src={getProductImageUrl(publicId, 'thumbnail')}
+                                        alt={`Product ${index + 1}`}
+                                        width={200}
+                                        height={96}
+                                        className="w-full h-24 object-cover rounded border"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(index)}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
 					</div>
 
 					<button

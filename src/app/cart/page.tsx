@@ -115,17 +115,22 @@ export default function CartPage() {
 								<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 									{/* Product Image */}
 									<div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 mx-auto sm:mx-0 relative">
-										{resolveThumb(i.image) ? (
-											<Image 
-												src={resolveThumb(i.image)} 
-												alt={i.name} 
-												fill
-												className="object-cover" 
-												sizes="80px"
-												placeholder="blur"
-												blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-											/>
-										) : (
+									{resolveThumb(i.image) ? (
+										(() => {
+											const thumbSrc = resolveThumb(i.image) || ""; // ensure string for Next/Image
+											return (
+												<Image 
+													src={thumbSrc}
+													alt={i.name}
+													fill
+													className="object-cover"
+													sizes="80px"
+													placeholder="blur"
+													blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+												/>
+											);
+										})()
+									) : (
 											<div className="w-full h-full grid place-items-center text-gray-400 text-xs">
 												No image
 											</div>
